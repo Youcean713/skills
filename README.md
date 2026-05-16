@@ -6,11 +6,11 @@
 
 ```
 skills/
-├── plan-review/                    # Skill 根目录
-│   ├── plan-review/               # 方案互审工作流
-│   ├── workflow-generator/        # 工作流生成器（英文版）
-│   └── workflow-generator-zh/     # 工作流生成器（中文版）
-└── README.md
+├── plan-review/                    # 方案互审工作流
+├── workflow-generator/            # 工作流生成器（英文版）
+├── workflow-generator-zh/         # 工作流生成器（中文版）
+├── .gitignore                     # Git 忽略配置
+└── README.md                      # 项目说明文档
 ```
 
 ## Skill 列表
@@ -91,7 +91,12 @@ python ".claude/skills/plan-review/assets/review.py" --text "方案内容"
 
 ## 更新日志
 
-### 2026-05-16
+### 2026-05-16 (第二次更新)
+- 修复项目结构：将三个 Skill 提升到根目录层级
+- 添加 .gitignore 文件，排除 .claude/ 等本地配置
+- 更新 README.md 反映正确的目录结构
+
+### 2026-05-16 (第一次更新)
 - 初始化仓库
 - 添加 `plan-review` 方案互审工作流 Skill
 - 添加 `workflow-generator` 工作流生成器（英文版）
