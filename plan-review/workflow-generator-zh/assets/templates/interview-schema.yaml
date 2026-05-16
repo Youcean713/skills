@@ -1,0 +1,119 @@
+# 工作流生成器的三层采访 schema
+# 定义必须从用户收集的信息
+version: "1.0"
+
+layers:
+  - name: domain_positioning
+    description: "确认思路属于什么领域"
+    priority: required
+    min_rounds: 1
+    max_rounds: 3
+    dimensions:
+      - name: domain_label
+        description: "简短领域标签（如 test-coverage、data-pipeline）"
+        type: string
+        suggest_template: |
+          根据你的描述，这看起来是一个 **{domain_label}** 工作流。
+          它的核心是 {domain_purpose}。是否正确？
+      - name: domain_purpose
+        description: "一句话概括这个工作流解决什么问题"
+        type: string
+        suggest_template: |
+          这个工作流解决的核心问题是：{domain_purpose}
+
+  - name: workflow_structure
+    description: "定义工作流骨架——输入、阶段、输出、质量"
+    priority: required
+    min_rounds: 3
+    max_rounds: 5
+    dimensions:
+      - name: input_materials
+        description: "输入材料及其优先级"
+        type: list
+        item_schema:
+          name: string
+          format: string
+          priority: enum[required, strongly_recommended, optional]
+          missing_impact: string
+        suggest_template: |
+          基于 {domain_label} 领域，我建议以下输入材料：
+          {items_formatted}
+          这些是否覆盖了所有需要的东西？是否需要添加、删除或调整优先级？
+
+      - name: workflow_phases
+        description: "有序的工作流阶段（7-14 步）"
+        type: list
+        item_schema:
+          order: int
+          name: string
+          description: string
+          inputs: list
+          outputs: list
+        suggest_template: |
+          我为 {domain_label} 建议以下工作流阶段：
+          {phases_formatted}
+          是否需要调整顺序、添加或删除某些阶段？
+
+      - name: skill_package_name
+        description: "Skill 包目录名（交付侧）。治理侧固定为 generator-context/，无需用户命名。"
+        type: string
+        suggest_template: |
+          对于 Skill 包目录名（交付侧），我建议命名为：**{skill_package_name}**
+          遵循小写连字符命名，如 `test-coverage-analyzer`。
+          注意：`generator-context/` 是生成器自身的固定治理目录——不会放入 Skill 包内。
+
+      - name: core_deliverables
+        description: "核心输出文件及其格式"
+        type: list
+        item_schema:
+          filename: string
+          format: string
+          description: string
+        suggest_template: |
+          基于这个工作流，核心交付物如下：
+          {deliverables_formatted}
+          有什么需要添加或修改的吗？
+
+      - name: quality_gates
+        description: "可验证的质量检查项"
+        type: list
+        item_schema:
+          description: string
+          verification_method: enum[script, manual, format_check]
+          blocking: boolean
+        suggest_template: |
+          我为 {domain_label} 建议以下质量门禁：
+          {gates_formatted}
+          是否需要调整阈值或添加检查项？
+
+  - name: detail_filling
+    description: "填补缺口——边界情况、错误处理、领域约束"
+    priority: on_demand
+    min_rounds: 0
+    max_rounds: 3
+    trigger_conditions:
+      - "输入格式描述模糊"
+      - "错误处理偏好不明确"
+      - "缺少工具链依赖"
+      - "存在冲突的约束条件"
+    dimensions:
+      - name: edge_case_handling
+        description: "如何处理边界情况"
+        type: list
+        item_schema:
+          scenario: string
+          options: list
+          recommendation: string
+        suggest_template: |
+          有一个边界情况：{scenario}
+          可选方案：{options_formatted}
+          我推荐：{recommendation}。你怎么看？
+
+      - name: tool_constraints
+        description: "工具/技术约束"
+        type: list
+        item_schema:
+          tool: string
+          constraint: string
+        suggest_template: |
+          已记录工具约束：{tool} — {constraint}

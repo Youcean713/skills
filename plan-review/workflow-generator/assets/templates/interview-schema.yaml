@@ -1,0 +1,119 @@
+# Three-layer interview schema for workflow generator
+# Defines what information must be collected from the user
+version: "1.0"
+
+layers:
+  - name: domain_positioning
+    description: "Confirm what domain the idea belongs to"
+    priority: required
+    min_rounds: 1
+    max_rounds: 3
+    dimensions:
+      - name: domain_label
+        description: "Short domain label (e.g., test-coverage, data-pipeline)"
+        type: string
+        suggest_template: |
+          Based on your description, this appears to be a **{domain_label}** workflow.
+          It focuses on {domain_purpose}. Is this correct?
+      - name: domain_purpose
+        description: "One-sentence summary of what problem this solves"
+        type: string
+        suggest_template: |
+          The core problem this workflow solves: {domain_purpose}
+
+  - name: workflow_structure
+    description: "Define the workflow skeleton — inputs, phases, outputs, quality"
+    priority: required
+    min_rounds: 3
+    max_rounds: 5
+    dimensions:
+      - name: input_materials
+        description: "Input materials with priority levels"
+        type: list
+        item_schema:
+          name: string
+          format: string
+          priority: enum[required, strongly_recommended, optional]
+          missing_impact: string
+        suggest_template: |
+          Based on the {domain_label} domain, I suggest these input materials:
+          {items_formatted}
+          Does this cover everything? Any to add, remove, or re-prioritize?
+
+      - name: workflow_phases
+        description: "Ordered workflow phases (7-14 steps)"
+        type: list
+        item_schema:
+          order: int
+          name: string
+          description: string
+          inputs: list
+          outputs: list
+        suggest_template: |
+          I suggest the following workflow phases for {domain_label}:
+          {phases_formatted}
+          Would you like to adjust the order, add, or remove any phases?
+
+      - name: skill_package_name
+        description: "Skill package directory name (delivery side). The governance side is always generator-context/ and does not need user naming."
+        type: string
+        suggest_template: |
+          For the skill package directory name (delivery side), I suggest: **{skill_package_name}**
+          Follow lowercase-hyphen naming, e.g. `test-coverage-analyzer`.
+          Note: `generator-context/` is the generator's fixed governance directory — it is NOT placed inside the skill package.
+
+      - name: core_deliverables
+        description: "Core output files with formats"
+        type: list
+        item_schema:
+          filename: string
+          format: string
+          description: string
+        suggest_template: |
+          Based on the workflow, the core deliverables would be:
+          {deliverables_formatted}
+          Any additions or changes?
+
+      - name: quality_gates
+        description: "Verifiable quality check items"
+        type: list
+        item_schema:
+          description: string
+          verification_method: enum[script, manual, format_check]
+          blocking: boolean
+        suggest_template: |
+          Quality gates I suggest for {domain_label}:
+          {gates_formatted}
+          Any thresholds to adjust or checks to add?
+
+  - name: detail_filling
+    description: "Fill gaps — edge cases, error handling, domain constraints"
+    priority: on_demand
+    min_rounds: 0
+    max_rounds: 3
+    trigger_conditions:
+      - "Ambiguous input format description"
+      - "Unclear error handling preference"
+      - "Missing tool chain dependency"
+      - "Conflicting constraints"
+    dimensions:
+      - name: edge_case_handling
+        description: "How to handle boundary conditions"
+        type: list
+        item_schema:
+          scenario: string
+          options: list
+          recommendation: string
+        suggest_template: |
+          One edge case: {scenario}
+          Options: {options_formatted}
+          I recommend: {recommendation}. What do you think?
+
+      - name: tool_constraints
+        description: "Tool/technology constraints"
+        type: list
+        item_schema:
+          tool: string
+          constraint: string
+        suggest_template: |
+          Tool constraint noted: {tool} — {constraint}
